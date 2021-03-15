@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "imdb.h"
+#include <string.h>
 using namespace std;
 
 const char *const imdb::kActorFileName = "actordata";
@@ -26,7 +27,29 @@ imdb::~imdb() {
 }
 
 bool imdb::getCredits(const string& player, vector<film>& films) const { 
-  return false; 
+  const int number = *(int*) actorFile;
+  int *firstOffset = (int*) actorFile;
+  int *lastOffset = firstOffset + number;
+  firstOffset = lastOffset;
+  char *name = (char *) actorFile + *firstOffset;
+  char *pointer = name;
+  cout << "i am the number " << number << endl;
+  cout << "first offset " << name << endl;
+  cout << "the length is : " << strlen(name) << endl;
+
+  int offset = 0;
+  pointer+=strlen(name);
+  if(strlen(name) %2 ==0){
+    offset = 2;
+  }else{
+    offset = 1;
+  }
+  pointer+=offset;
+  short *numberMovies = (short * ) pointer;
+  cout << "number of movies in " << *numberMovies << endl;
+
+
+
 }
 
 bool imdb::getCast(const film& movie, vector<string>& players) const { 
