@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "imdb.h"
 #include <string.h>
+#include <algorithm>
 using namespace std;
 
 const char *const imdb::kActorFileName = "actordata";
@@ -28,31 +29,33 @@ imdb::~imdb() {
 
 bool imdb::getCredits(const string& player, vector<film>& films) const { 
   const int number = *(int*) actorFile;
-  int *firstOffset = (int*) actorFile;
+  int *firstOffset = (int*) actorFile + 399772;
   int *lastOffset = firstOffset + number;
-  firstOffset = lastOffset;
-  char *name = (char *) actorFile + *firstOffset;
-  char *pointer = name;
-  cout << "i am the number " << number << endl;
-  cout << "first offset " << name << endl;
-  cout << "the length is : " << strlen(name) << endl;
-
-  int offset = 0;
-  pointer+=strlen(name);
-  if(strlen(name) %2 ==0){
-    offset = 2;
-  }else{
-    offset = 1;
+  char *pointer = (char*)actorFile + *firstOffset;
+  cout << "name is " << pointer << endl;
+  int offset = strlen(pointer) + 1;
+  if(strlen(pointer) % 2==0){
+    offset+=1;
   }
   pointer+=offset;
-  short *numberMovies = (short * ) pointer;
-  cout << "number of movies in " << *numberMovies << endl;
+  short numberMovies = *(short *) pointer;
+  cout << "golemina na short e : " << sizeof(short) << endl;
+  cout << "number of of movies " << numberMovies <<  endl;
+  pointer+=2;
+  int *m = (int *) pointer;
+  char *nameMovie = (char*) movieFile + *m;
+  cout << "movie name is: " << nameMovie << endl;
 
 
 
 }
 
+
+
+
+
 bool imdb::getCast(const film& movie, vector<string>& players) const { 
+
   return false; 
 }
 
