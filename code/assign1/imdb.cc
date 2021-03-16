@@ -30,28 +30,32 @@ imdb::~imdb() {
 bool imdb::getCredits(const string& player, vector<film>& films) const { 
   const int number = *(int*) actorFile;
   int *firstOffset = (int*) actorFile + 1;
-  //399788
   int *lastOffset = firstOffset + number;
+  //Search for the offset of the player
   int *indexOfPlayer = lower_bound(firstOffset,lastOffset,player,[&](const int a,const string& b) -> bool{
     return getPlayer(a).compare(b) < 0;
   });
+  //Name of the player
   char *pointer = (char *) actorFile + *indexOfPlayer;
   int dolzina = strlen(pointer);
-  cout << "name is " << pointer << endl;
   int offset = strlen(pointer) + 1;
+  //Make sure that the total length for the name is always even
   if(strlen(pointer) % 2==0){
     offset+=1;
   }
   pointer+=offset;
+
+  //Number of movies that player has acted 
   short numberMovies = *(short *) pointer;
-  // cout << "number of of movies " << numberMovies <<  endl;
+
+  //If the dedicated length for the name and for the number of movies acted isn't multiple of 4 add 2 extra bytes (for reasont that it can be integers or something like that)
   if((offset+2) % 4 !=0){
     pointer+=2;
   }
   pointer+=2;
-
+  //First movie offset that the player has acted
   int *moviesOffset = (int *) pointer;
-
+  //Iterate over all movies and populate the array
   for(int i=0;i<numberMovies;i++){
       film temp = getFilm(*moviesOffset);
       moviesOffset+=1;
@@ -59,6 +63,7 @@ bool imdb::getCredits(const string& player, vector<film>& films) const {
   }
   return true;
 }
+//Gets struct film based on some offset from movieFile
 const film imdb::getFilm(int offset) const{
   char *pointer = (char *) movieFile + offset;
   string title = string(pointer);
@@ -66,11 +71,11 @@ const film imdb::getFilm(int offset) const{
   char year = *pointer;
   return film{title,year};
 }
+
+//get the name of the player based on offset
  const string imdb::getPlayer(int offset) const{
    return string((char * ) actorFile + offset);
  }
-
-
 
 bool imdb::getCast(const film& movie, vector<string>& players) const { 
 
