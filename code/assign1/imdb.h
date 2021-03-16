@@ -69,6 +69,7 @@ class imdb {
 
   bool getCast(const film& movie, std::vector<std::string>& players) const;
   const film getFilm(int offset) const;
+  const std::string getPlayer(int offset) const;
 
 /**
  * Destructor: ~imdb

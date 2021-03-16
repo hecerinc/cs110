@@ -29,9 +29,13 @@ imdb::~imdb() {
 
 bool imdb::getCredits(const string& player, vector<film>& films) const { 
   const int number = *(int*) actorFile;
-  int *firstOffset = (int*) actorFile + 399778;
+  int *firstOffset = (int*) actorFile + 1;
+  //399788
   int *lastOffset = firstOffset + number;
-  char *pointer = (char*)actorFile + *firstOffset;
+  int *indexOfPlayer = lower_bound(firstOffset,lastOffset,player,[&](const int a,const string& b) -> bool{
+    return getPlayer(a).compare(b) < 0;
+  });
+  char *pointer = (char *) actorFile + *indexOfPlayer;
   int dolzina = strlen(pointer);
   cout << "name is " << pointer << endl;
   int offset = strlen(pointer) + 1;
@@ -62,6 +66,9 @@ const film imdb::getFilm(int offset) const{
   char year = *pointer;
   return film{title,year};
 }
+ const string imdb::getPlayer(int offset) const{
+   return string((char * ) actorFile + offset);
+ }
 
 
 
