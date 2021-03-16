@@ -29,27 +29,31 @@ imdb::~imdb() {
 
 bool imdb::getCredits(const string& player, vector<film>& films) const { 
   const int number = *(int*) actorFile;
-  int *firstOffset = (int*) actorFile + 399772;
+  int *firstOffset = (int*) actorFile + 399778;
   int *lastOffset = firstOffset + number;
   char *pointer = (char*)actorFile + *firstOffset;
-  // cout << "name is " << pointer << endl;
+  int dolzina = strlen(pointer);
+  cout << "name is " << pointer << endl;
   int offset = strlen(pointer) + 1;
   if(strlen(pointer) % 2==0){
     offset+=1;
   }
   pointer+=offset;
   short numberMovies = *(short *) pointer;
-  // cout << "golemina na short e : " << sizeof(short) << endl;
   // cout << "number of of movies " << numberMovies <<  endl;
+  if((offset+2) % 4 !=0){
+    pointer+=2;
+  }
   pointer+=2;
+
   int *moviesOffset = (int *) pointer;
 
   for(int i=0;i<numberMovies;i++){
       film temp = getFilm(*moviesOffset);
-      cout << "name of omvies is : " << temp.title << " : year is " <<temp.year <<  endl;
       moviesOffset+=1;
       films.push_back(temp);
   }
+  return true;
 }
 const film imdb::getFilm(int offset) const{
   char *pointer = (char *) movieFile + offset;
