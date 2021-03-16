@@ -42,15 +42,22 @@ bool imdb::getCredits(const string& player, vector<film>& films) const {
   cout << "golemina na short e : " << sizeof(short) << endl;
   cout << "number of of movies " << numberMovies <<  endl;
   pointer+=2;
-  int *m = (int *) pointer;
-  char *nameMovie = (char*) movieFile + *m;
-  cout << "movie name is: " << nameMovie << endl;
+  int *moviesOffset = (int *) pointer;
 
-
-
+  for(int i=0;i<numberMovies;i++){
+      film temp = getFilm(*moviesOffset);
+      cout << "name of omvies is : " << temp.title << "year is " <<temp.year <<  endl;
+      moviesOffset+=1;
+      films.push_back(temp);
+  }
 }
-
-
+const film imdb::getFilm(int offset) const{
+  char *name = (char * )movieFile + offset;
+  string title = string(name);
+  offset += strlen(name) + 1;
+  char year = *(char*)movieFile + offset;
+  return film{title,year};
+}
 
 
 
