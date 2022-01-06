@@ -1,14 +1,14 @@
 # CS110 search Makefile Hooks
 
 PROGS = search imdbtest
-CXX = /usr/bin/g++-5
+CXX = /usr/bin/g++
 
 CXX_WARNINGS = -Wall -pedantic -Wno-vla
 CXX_DEPS = -MMD -MF $(@:.o=.d)
 CXX_DEFINES =
 CXX_INCLUDES = -I/afs/ir/class/cs110/local/include
 
-CXXFLAGS = -g $(CXX_WARNINGS) -O0 -std=c++0x $(CXX_DEPS) $(CXX_DEFINES) $(CXX_INCLUDES)
+CXXFLAGS = -g $(CXX_WARNINGS) -O0 -std=c++14 $(CXX_DEPS) $(CXX_DEFINES) $(CXX_INCLUDES)
 LDFLAGS = 
 
 LIB_SRC = imdb.cc path.cc

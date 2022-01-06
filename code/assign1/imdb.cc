@@ -63,12 +63,9 @@ bool imdb::getCredits(const string& player, vector<film>& films) const {
 		// 1. binary search actor in actorFile;
 			// if not found set films size to 0
 			// return false;
-		cout << "Actor " << player << " not found" << endl;
+		// cout << "Actor " << player << " not found" << endl;
 		films.clear();
 		return false;
-	}
-	else {
-		cout << "Actor found at position " << (actorPos - (int *)actorFile) << endl;
 	}
 
 	char *movieArray;
@@ -84,7 +81,7 @@ bool imdb::getCredits(const string& player, vector<film>& films) const {
 		movieArray = actorRecord + len + 1 + sizeof(short);
 	}
 
-	// cout << "Number of movies: " << *numberOfMovies << endl;
+	cout << "Number of movies: " << *numberOfMovies << endl;
 	// Generate the film structs
 	for(int *i = (int *)movieArray, j = 0; j < *numberOfMovies; j++) {
 		const char * title = (char *)((char*)movieFile + *i);
@@ -100,6 +97,16 @@ bool imdb::getCredits(const string& player, vector<film>& films) const {
 
 	return true;
 }
+
+struct film getFilmFromOffset(const void * movieFile, int offset) {
+	const char* title = (char *)movieFile + offset;
+	const int len = strlen(title);
+	const char * yearPtr = title + len + 1;
+	int year = 1900 + static_cast<int>(*yearPtr);
+
+	struct film f = {title, year};
+	return f;
+}
 /*
 	 * Searches the receiving imdb for the specified film and returns the cast
 	 * by populating the specified vector<string> with the list of actors and actresses
@@ -107,25 +114,48 @@ bool imdb::getCredits(const string& player, vector<film>& films) const {
 	 * is cleared and its size left at 0.
  */
 bool imdb::getCast(const film& movie, vector<string>& players) const {
-	// 1. binary search movie in movieFile;
-		// if not found set players size to 0
-		// return false;
-	// 2. offsets = Given movie offset, get list of offsets into actors
-	// 3. getActorsFromOffsets(offsets)
+	int moviesLength = *(int *)movieFile;
+	char* beginning = (char *)movieFile + sizeof(int);
+	char * end = (char *)(beginning + (moviesLength * sizeof(int)));
+	auto moviePos = lower_bound((int *)beginning, (int *)end, movie, [&movieFile = movieFile](int offset, const film& value){
+		// get movie name at offset `offset`
+
+		struct film f = getFilmFromOffset(movieFile, offset);
+		return f < value;
+	});
+
+	const film f = getFilmFromOffset(movieFile, *moviePos);
+	if(moviePos != (int *)end && !(movie == f)) {
+		// 1. binary search movie in movieFile;
+			// if not found set films size to 0
+			// return false;
+		/* cout << "Movie " << movie.title << " not found" << endl; */
+		players.clear();
+		return false;
+	}
+
+	// Populate the actors array
+	const char * movieRecord = (char *)movieFile + *moviePos;
+	const int titlePlusYearLen = movie.title.length() + /* null terminator */ 1 + /* one byte for year */ 1;
+
+	char * actorNumberPtr = (char *)movieRecord + titlePlusYearLen;
+
+	if(titlePlusYearLen % 2 != 0) {
+		// If it's odd, an extra NUL character sits between the year and the data that follows
+		actorNumberPtr++;
+	}
+	int numberOfActors = *(int *)actorNumberPtr;
+	// cout << "Number of actors: " << numberOfActors << endl;
+	char * actorArray = (char *)actorNumberPtr + sizeof(int);
+
+
+	for(int *i = (int *)actorArray, j = 0; j < numberOfActors; j++) {
+		const char * actorPtr = (char *)actorFile + *i;
+		players.push_back(string(actorPtr));
+		i++;
+	}
 	return true;
 }
-
-/*
- * getFilmsFromOffsets():
- *
- * Given a list of offsets, return vector of film structs;
- */
-
-/*
- * getActorsFromOffsets();
- *
- * Given a list of offsets, return vector of actors.
- */
 
 const void *imdb::acquireFileMap(const string& fileName, struct fileInfo& info) {
 	struct stat stats;
