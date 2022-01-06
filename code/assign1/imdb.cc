@@ -69,11 +69,35 @@ bool imdb::getCredits(const string& player, vector<film>& films) const {
 	}
 	else {
 		cout << "Actor found at position " << (actorPos - (int *)actorFile) << endl;
-		// printf("ACTOR: %s\n", (char *)actorPos);
 	}
 
-	// 2. offsets = Given actor offset, get list of offsets into movies
-	// 3. getFilmsFromOffsets(offsets)
+	char *movieArray;
+	short *numberOfMovies;
+	const int len = strlen(actorRecord);
+
+	if(len % 2 == 0) {
+		numberOfMovies = (short *)(actorRecord + len + 2);
+		movieArray = actorRecord + len + 2 + sizeof(short);
+	}
+	else {
+		numberOfMovies = (short *)(actorRecord + len + 1);
+		movieArray = actorRecord + len + 1 + sizeof(short);
+	}
+
+	// cout << "Number of movies: " << *numberOfMovies << endl;
+	// Generate the film structs
+	for(int *i = (int *)movieArray, j = 0; j < *numberOfMovies; j++) {
+		const char * title = (char *)((char*)movieFile + *i);
+		const int len = strlen(title);
+		const char * yearPtr = title + len + 1;
+		int year = 1900 + static_cast<int>(*yearPtr);
+
+		struct film f = {title, year};
+		// cout << f.year << "\t" << f.title << endl;
+		i++;
+		films.push_back(f);
+	}
+
 	return true;
 }
 /*
