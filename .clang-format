@@ -5,6 +5,7 @@ UseTab: Always
 TabWidth: 4
 IndentWidth: 4
 PointerAlignment: Left
+IndentAccessModifiers: false
 DerivePointerAlignment: false
 BreakBeforeBraces: Custom
 BraceWrapping:
