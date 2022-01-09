@@ -1,0 +1,117 @@
+/* Functionality */
+.summary {
+    padding: 10px 0px;
+    font-size: smaller;
+}
+
+.section_list {
+    padding: 5px;
+}
+
+.section_link, .file_link {
+    text-decoration: none; /* No underline */
+    display: inline-block;
+    color: #999999; /* Dark gray */
+    margin: 5px 10px 5px 10px;
+    cursor: pointer;
+}
+
+.section_link.selected, .section_link:hover, .file_link.selected, .file_link:hover {
+    color: inherit;
+}
+
+.section_link {
+    font-weight: bold;
+    font-size: bigger;
+}
+
+#frame_dummy {
+    display: none;
+}
+
+.points {
+    color: dimgray;
+    font-size: larger;
+    font-weight: bold;
+    padding: 5px 5px 20px;
+}
+
+.table_header .score {
+    text-align: center;
+    width: 3em;
+}
+
+.detail_links {
+    font-weight: normal;
+    font-size: smaller;
+    float: right;
+    padding-right: 5px;
+}
+
+.table_row .score { text-align: center; padding-right: 1em; }
+.table_row .description strong { color: black; }
+
+.table_detail { display: none; }
+.table_detail.fail { display: table-row; }
+
+.table_detail td {
+    background-color: #ffe;
+    cursor: auto;
+    font-size: smaller;
+    line-height: normal;
+    padding: 5px 0px;
+}
+
+/* Style */
+.overview_header {
+    padding: 5px;
+}
+
+#ajax_warning {
+    color: darkred;
+    display: none;
+    float: right;
+    text-align: right;
+}
+
+.file_link.selected, .file_link:hover {
+    border-bottom: 2px solid black;
+}
+
+.CodeMirror {
+    height: auto;
+    border: 1px solid silver;
+    font-size: 10pt;
+}
+
+/* Text highlighted by mouse. */
+/* .CodeMirror-selected { } */
+
+/* Lines with comment. */
+.highlighted {
+    background-color: #f0eee0;
+}
+
+#comment_edit {
+    width: 100%;
+}
+
+input, select, textarea, .bucket, .comment_box {
+    background-color: #fcecbd; /* Yellow-ish */
+    border: 1px solid #e6c670; /* Dark yellow */
+    color: darkred;
+    font-family: Helvetica;
+    font-weight: bold;
+}
+
+.comment_box {
+    padding: 8px 30px;
+    margin-bottom: 10px;
+}
+
+.comment_button {
+    background-color: #eaeaea;
+    border: 1px solid silver;
+    color: #000000;
+    margin: 5px;
+}

@@ -1,0 +1,616 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta charset="UTF-8">
+        <link href="html_files/css.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="html_files/review.css">
+        <link rel="stylesheet" type="text/css" href="html_files/codemirror.css">
+        <link rel="stylesheet" type="text/css" href="html_files/style.css">
+        <title>CS 110: Principles of Computer Systems</title>
+    </head>
+    <body>
+
+
+        <div class="page-header-container collapsed">
+            <div class="navbar">
+                <div class="navbar-contents">
+                    <div class="nav-home">
+                        <h3><a href="https://web.stanford.edu/class/cs110/summer-2021/">CS 110</a></h3>
+                    </div>
+                    <ul>
+    <li><a href="https://web.stanford.edu/class/cs110/summer-2021/pages/schedule/">Schedule</a></li>
+    <li><a href="https://cs110-sum-2021.slack.com/">Slack</a></li>
+    <li><a href="https://edstem.org/us/join/TKTcCf">Ed</a></li>
+    <li><a href="https://www.gradescope.com/courses/276162">Gradescope</a></li>
+    <li><a href="https://canvas.stanford.edu/courses/140072/external_tools/5384">Zoom</a></li>
+    <li><a href="https://web.stanford.edu/class/cs110/cgi-bin/lab_signup">Lab signup</a></li>
+    <li><a href="https://web.stanford.edu/class/cs110/cgi-bin/gradebook">Gradebook</a></li>
+</ul>
+
+                </div>
+            </div>
+        </div>
+
+
+
+<div class="content">
+    <h1>Assignment 1: Six Degrees of Kevin Bacon</h1>
+
+    <p><em>This handout was adapted from Jerry Cain’s Spring 2021 offering.</em></p>
+<p>Craving a little Oscar trivia?  Try your hand at an Internet parlor game about
+Kevin Bacon’s acting career.  He’s never been nominated for an Oscar, but he’s
+still immortal – based on the premise that he is the hub of the entertainment
+universe. Mike Ginelli, Craig Fass and Brian Turtle invented the game while
+students at Albright College in 1993, and their Bacon bit spread rapidly after
+convincing then TV talk-show host Jon Stewart to demonstrate the game to all
+those who tuned in. From these humble beginnings, a website was built, a book
+was published and a nationwide cult-fad was born.</p>
+<p>When you think about Hollywood heavyweights, you don’t immediately think of
+Kevin Bacon.  But his career spans over 40 years through films such as
+<em>Flatliners</em>, <em>The Air Up There</em>, <em>Footloose</em>, <em>The River Wild</em>, <em>JFK</em> and
+<em>Animal House</em>.  To brush up on your Bacon lore and play online, visit
+<a href="http://oracleofbacon.org/">http://oracleofbacon.org</a>.</p>
+<p>This assignment is first and foremost a systems programming assignment, but
+it’s also an opportunity to review your C++ while simultaneously exercising
+some software engineering and low-level memory manipulation skills.  You’ll
+also get to see that low-level C coding and high-level C++ data structuring can
+coexist in the same application.</p>
+<p><strong>Due Date: Tuesday, June 29th, 2021 at 11:59pm, PDT.</strong></p>
+<p><em><strong>Note:</strong> We’re requiring this assignment be turned in on time so that we can
+give you prompt feedback in preparation for the second assignment. If you need
+an extension, come talk to us in advance.</em></p>
+<h2 id="overview-of-the-functionality">Overview of the functionality</h2>
+<p>The game takes the form of a trivia challenge: supply any two names, and your
+friend/opponent has to come up with a sequence of movies and mutual co-stars
+connecting the two.  In this case, your opponent takes on the form of an
+executable, and that executable is infuriatingly good.</p>
+<p>Jack Nicholson and Meryl Streep?  That’s easy:</p>
+<pre><code>$ ./search "Meryl Streep" "Jack Nicholson (I)"
+Meryl Streep was in "Close Up" (2012) with Jack Nicholson (I).
+</code></pre><p>Mary Tyler Moore (loved her!) and Red Buttons?  Not so obvious:</p>
+<pre><code>$ ./search "Mary Tyler Moore" "Red Buttons"
+Mary Tyler Moore was in "Change of Habit" (1969) with Regis Toomey.
+Regis Toomey was in "C.H.O.M.P.S" (1979) with Red Buttons.
+</code></pre><p>Barry Manilow and Lou Rawls? Yes!</p>
+<pre><code>$ ./search "Barry Manilow" "Lou Rawls"
+Barry Manilow was in "Bitter Jester" (2003) with Dom Irrera.
+Dom Irrera was in "A Man Is Mostly Water" (2000) with Lou Rawls.
+</code></pre><p>It’s the people you’ve never heard of that are far away from each other:</p>
+<pre><code>$ ./search "Danzel Muzingo" "Liseli Mutti"
+Danzel Muzingo was in "My Day in the Barrel" (1998) with Chala Savino.
+Chala Savino was in "Barbershop: The Next Cut" (2016) with Troy Garity.
+Troy Garity was in "Sunshine" (2007) with Cliff Curtis (I).
+Cliff Curtis (I) was in "Rapa Nui" (1994) with Liseli Mutti.
+</code></pre><p>Optionally, the <code>search</code> executable accepts an extra argument to limit the
+search to something other than 6.</p>
+<pre><code>$ ./search "Danzel Muzingo" "Liseli Mutti" 4
+Danzel Muzingo was in "My Day in the Barrel" (1998) with Chala Savino.
+Chala Savino was in "Barbershop: The Next Cut" (2016) with Troy Garity.
+Troy Garity was in "Sunshine" (2007) with Cliff Curtis (I).
+Cliff Curtis (I) was in "Rapa Nui" (1994) with Liseli Mutti.
+$ ./search "Danzel Muzingo" "Liseli Mutti" 3
+No path between those two people could be found.
+</code></pre><h2 id="getting-set-up">Getting set up</h2>
+<h3 id="getting-the-code">Getting the code</h3>
+<p>Go ahead and clone the starter repository that we’ve set up for you.  Do so by
+typing this:</p>
+<pre><code>$ git clone /usr/class/cs110/repos/assign1/$USER assign1
+</code></pre><p>This line places a copy of the starter files dedicated to you in your current
+working directory. <code>git</code> is the name of the source control framework we use to
+keep track of your changes and minimize the chances you lose any of your work.</p>
+<p>If you’re not enrolled in the course and you don’t have a repo, email me and
+I’ll create one for you.  In the meantime, start by cloning the read-only guest
+repo (i.e. <code>/usr/class/cs110/repos/assign1/guest</code>) and working with that until
+your repo is available. Then you can clone your real repo and copy your work
+over, file by file, from the guest copy to the one linked to your SUNet ID.</p>
+<p>As you make progress toward a solution, you can invoke <code>./tools/sanitycheck</code> to
+commit local changes and run a collection of tests that compare your solution
+to my own. And be sure your solutions are free of memory leaks and errors,
+since we’ll be running your code through <code>valgrind</code>.  Note: there’s a bug in
+<code>valgrind</code> that surfaces with virtually any C++ program.  You can suppress this
+error by copying the <code>/usr/class/cs110/tools/config/.valgrindrc</code> file into your
+home directory (or copying its contents into an existing <code>~/.valgrindrc</code> file):</p>
+<pre><code>$ more /usr/class/cs110/tools/config/.valgrindrc
+--memcheck:leak-check=full
+--show-reachable=yes
+--suppressions=/usr/class/cs110/tools/config/cs110.supp
+$ cp /usr/class/cs110/tools/config/.valgrindrc ~
+</code></pre><p>Once you’re done and ready to turn everything in, you can type
+<code>./tools/submit</code>, which will offer the option to run <code>sanitycheck</code> one last
+time before pushing all of your changes back to your
+<code>/usr/class/cs110/repos/assign1/$USER</code> repo. You can run the submission script
+as many times as you need to, and we’ll be sure to grade and code review your
+most recent submission.</p>
+<h3 id="setting-up-your-environment">Setting up your environment</h3>
+<p>We have compiled a list of tips for various tools
+<a href="https://web.stanford.edu/class/cs110/summer-2021/handouts/tools-tips/">here</a>. In particular, unless you are
+attached to your current editor, we highly recommend trying VSCode (we have a
+how-to video linked on that page). VSCode should provide a much better
+experience than vim or emacs if you’re living far from campus, since it is
+better able to manage latency, and it also has code analysis features that are
+extremely useful when working with many files as you will in this class.</p>
+<p>If you’re interested in vim (which you can also use inside of VSCode!), we have
+a <a href="https://youtu.be/jRjBQm3oGuI">video</a> and <a href="https://web.stanford.edu/class/cs110/summer-2021/handouts/vim-cheat-sheet/">cheat sheet</a>, and if you’re interested in emacs, there is
+a great
+<a href="https://web.stanford.edu/class/archive/cs/cs107/cs107.1218/resources/emacs.html">guide</a>
+on the CS 107 website.</p>
+<p>Do you live very far from campus or have a spotty internet connection? We are
+prototyping a system that would let you work locally on your own machine,
+instead of needing to connect to myth. Let us know if you would be interested
+in helping to try this out.</p>
+<h2 id="overview-of-the-assignment">Overview of the assignment</h2>
+<p>There are two major components to this assignment:</p>
+<ul>
+<li>
+<p>You need to implement the <code>imdb</code> class (<code>imdb</code> is short for Internet Movie
+Database), which serves as a database that lets us query who starred in what.
+This class has two main methods, defined in the <code>imdb.h</code> file:
+<code>getCredits()</code>, which is used to get a list of films that an actor/actress
+has starred in, and <code>getCast()</code>, which is used to get a list of
+actors/actresses that starred in a given movie.</p>
+<p>You could implement this <code>imdb</code> class using two <code>maps</code> (one mapping people to
+movies, and another mapping movies to people), but there is so much data in
+this database that loading all the data from text files into <code>map</code>s would
+take several minutes, even on fast machines.</p>
+<p>Instead, you’ll tap your sophisticated understanding of memory and data
+representation and learn about something called memory mapping in order to
+look up movie and actor information from a prepared data structure that’s
+been saved to disk in binary form.  This is the meatier part of the
+assignment, and it’s a throwback to the type of programming you got really
+good at in CS107 or its equivalent.</p>
+</li>
+<li>
+<p>You need to implement a <strong>breadth-first search algorithm</strong> that enlists your
+<code>imdb</code> class to find the shortest path connecting any two actors or
+actresses.  If the search goes on for so long that you can tell it’ll be of
+length 7 or more, then you can be reasonably confident (and pretend that you
+know for sure that) there’s no path connecting them.  This part of the
+assignment is more CS106B-like, and it’s a chance to get some experience with
+the STL (using <code>vector</code>s, <code>set</code>s, and <code>list</code>s) and to see a legitimate
+scenario where a complex program benefits from coding in two different
+paradigms: high-level, object-oriented C++ (with its STL template containers
+and template algorithms) and low-level, imperative C (with its exposed
+memory, courtesy of CS107, <code>*</code>, <code>&amp;</code>, <code>[]</code>, and <code>-&gt;</code>).</p>
+</li>
+</ul>
+<p>Here is an overview of the files you will need for Task I:</p>
+<ul>
+<li><code>imdb-utils.h</code>: The definition of the <code>film</code> struct, and an inline function
+that finds the data files for you.  <em>You shouldn’t need to change this file.</em></li>
+<li><code>imdb.h</code>: The interface for the <code>imdb</code> class.  <em>You shouldn’t change the
+public interface of this file, though you will likely change the private
+section in order to add helper methods or any other modifications you see
+fit.</em></li>
+<li><code>imdb.cc</code>: The implementation of the <code>imdb</code> constructor, destructor, and
+methods.  This is where your code for <code>getCast</code> and <code>getCredits</code> belongs.</li>
+<li><code>imdbtest.cc</code>: The unit test code we’ve provided to help you exercise your
+<code>imdb</code>.  <em>You don’t need to read, change, or understand this file, although
+you’re welcome to look at it if you want to understand how <code>imdb</code> is being
+tested.</em></li>
+</ul>
+<p>Everything from Task I (except <code>imdbtest.cc</code>) contributes to the overall
+<code>search</code> application. You can run <code>make</code> to compile your code. There’s a sample
+executable at <code>./samples/search_soln</code> for you to play with. Understand that my
+sample application and yours aren’t obligated to publish the same exact
+shortest path, but you should be sure that the path lengths themselves actually
+match.</p>
+<p>In addition to the files used for Task I, there are these:</p>
+<ul>
+<li><code>search.cc</code>: The file where most if not all of your Task II changes should be made.</li>
+<li><code>path.h</code>: The definition of the <code>path</code> class, which is a custom class useful
+for storing paths between two actors.  <em>You’re free to add methods if you
+think it’s sensible to do so.</em></li>
+<li><code>path.cc</code>: The implementation of the <code>path</code> class.  <em>Again, you can add stuff
+here if you think it makes sense to.</em></li>
+</ul>
+<h2 id="task-i-the-imdb-class">Task I: The <code>imdb</code> class</h2>
+<p>First off, you should complete the implementation of the <code>imdb</code> class, whose
+interface looks like this:</p>
+<pre><code>struct film {
+  string title;
+  int year;
+};
+
+class imdb {
+public: 
+  imdb(const string&amp; directory);
+  bool good() const;
+  bool getCredits(const string&amp; player, vector&lt;film&gt;&amp; films) const;
+  bool getCast(const film&amp; movie, vector&lt;string&gt;&amp; players) const;
+  ~imdb();
+
+private:
+  const void *actorFile;
+  const void *movieFile;
+};
+</code></pre><p>The constructor and destructor have already been implemented for you. All the
+constructor does is initialize <code>actorFile</code> and <code>movieFile</code> fields to point to
+on-disk data structures using the <code>mmap</code> routine you’ll learn about later on in
+the course. You don’t need to worry about how this works; all you need to know
+is that when you’re implementing the rest of this class, you can <code>actorFile</code>
+and <code>movieFile</code> as if they were pointing to normal buffers like those you used
+in CS 107, but under the hood, when you read something from those memory
+regions, the operating system reads it from the actor/movie files on disk. This
+enables our database to load much faster, as we only read the portions of the
+actor/movie file that we need for our search, instead of reading the entire
+(huge) files into memory.</p>
+<p>You’ll need to implement the <code>getCredits</code> and <code>getCast</code> methods by manually
+crawling over these binary images in order to produce <code>vector</code>s of movies and
+actor names.  When properly implemented, they provide lightning-speed access to
+a gargantuan amount of information, because the information is already
+compactly formatted in a prepared data structure that lives on the <code>myth</code>s.</p>
+<p>Understand up front that you are implementing these two methods to crawl over
+two arrays of bytes in order to synthesize data structures for the client.
+What appears below is a description of how that memory is laid out.  You aren’t
+responsible for creating the data files in any way, but you are responsible for
+understanding how everything is encoded so that you can rehydrate information
+from its byte-level representation.</p>
+<h3 id="the-raw-data-files">The Raw Data Files</h3>
+<p>The private <code>actorFile</code> and <code>movieFile</code> fields each address large blocks of
+memory.  Each is configured to point to mutually referent database images, and
+the format of each is described below.  The <code>imdb</code> constructor sets these
+pointers up for you, so you can proceed as if everything is initialized for
+<code>getCast</code> and <code>getCredits</code> to just work.</p>
+<p>For the purposes of illustration, let’s assume that Hollywood has produced a
+mere three movies and that they’ve always rotated through the same three actors
+whenever the time came to cast their three films.  Pretend those three films
+are these:</p>
+<ul>
+<li>Clerks, released in 1993, starring Cher and Liberace.</li>
+<li>Moonstruck, released in 1988, starring Cher, Liberace, and Madonna.</li>
+<li>Zoolander, released in 1999, starring Liberace and Madonna.</li>
+</ul>
+<p>Remember, we’re pretending.</p>
+<p>If an <code>imdb</code> instance is configured to store the above information, you might
+imagine its <code>actorFile</code> and <code>movieFile</code> fields being initialized—by the
+constructor I already wrote for you—as follows:</p>
+<figure>
+    <img src="html_files/data-layout-1.png"> 
+</figure>
+
+<p>Each of the records for the actors and movies will vary in size.  Some movie
+titles are longer than others; some films feature 75 actors, while others star
+only one or two.  Some actors have prolific careers, while others are one-hit
+wonders.  Defining a <code>struct</code> or <code>class</code> to overlay the blocks of data is a
+fine idea, except that doing so would constrain all records to be the same
+size.  We don’t want that, because we’d be wasting a good chunk of memory when
+storing information about actors who appeared in just one or two films and
+about films that feature just a handful of actors.</p>
+<p>However, by allowing the individual records to be of variable size, we lose our
+ability to binary search (hint: via the STL <code>lower_bound</code> algorithm) a sorted
+array of records.  The number of actors and actresses is 2.5 million, and the
+number of movies is just shy of 700,000, so a linear search would be way too
+slow.  All actors and movies are sorted by name (and then by year if two movies
+have the same name), so binary search is still within reach.  The strong desire
+to binary search quickly motivated my decision to format the data files like
+this:</p>
+<figure>
+    <img src="html_files/data-layout-2.png"> 
+</figure>
+
+<p>Spliced in between the number of records and the records themselves is an array
+of integer offsets.  They’re drawn as pointers, but they really aren’t stored
+that way.  We want the data images to be <em>relocatable</em>.  Restated, we can’t
+embed actual memory addresses in the data images, because the binary image may
+be loaded into memory at different locations each time an <code>imdb</code> is created.
+By storing integer offsets, we can manually compute the location of Cher’s
+record, Madonna’s record, or Clerk’s record, etc, by adding the corresponding
+offsets to whatever <code>actorFile</code> or <code>movieFile</code> turns out to be.  A more
+accurate picture of what gets stored (and this is really what the file format
+is) is this:</p>
+<figure>
+    <img src="html_files/data-layout-3.png"> 
+</figure>
+
+<p>Because the numbers are what they are, we would expect Cher’s 16-byte record to
+sit 16 bytes from the front of <code>actorFile</code>, Liberace’s 24-byte record to sit 32
+bytes within the <code>actorFile</code> image, and so forth.  Looking for Moonstruck?  Its
+28-byte record can be found 36 bytes ahead of whatever address is stored in
+<code>movieFile</code>.  Note that the offsets tell me where records are relative to the
+base address, and the <strong>differences</strong> between consecutive offsets tell me how
+large the records are.</p>
+<p>Because all of the offsets are stored as <strong>four-byte</strong> integers (and <code>int</code>s are
+four bytes, even on 64-bit systems like the <code>myth</code>s), and because they are in a
+sense sorted if the records they reference are sorted, we can use binary
+search.  Woo.</p>
+<p>To summarize:</p>
+<ul>
+<li><code>actorFile</code> points to a large mass of memory packing all of the information
+about all of the actors.  The first four bytes store the number of actors (as
+an <code>int</code>); the next four bytes store the offset to the zeroth actor, the next
+four bytes store the offset to the first actor, and so forth.  The last
+offset is followed by the zeroth record, then the first record, and so forth.
+The records themselves are sorted by name.</li>
+<li><code>movieFile</code> also points to a large mass of memory, but this one packs the
+information about all films ever made.  The first four bytes store the number
+of movies (again, as an <code>int</code>); the next <code>*(int *)movieFile * sizeof(int)</code>
+bytes store all of the <code>int</code> offsets, and everything beyond is real movie
+data.  The movies are sorted by title, and those sharing the same title are
+sorted by year.</li>
+<li>The above description above generalizes to files with 2,500,000 actors and
+700,000 movies.</li>
+</ul>
+<h3 id="the-actor-record">The Actor Record</h3>
+<p>The actor record is a packed set of bytes collecting information about an actor
+and the movies he or she’s appeared in.  We don’t use a <code>struct</code> or <code>class</code> to
+overlay the memory associated with an actor, because doing so would constrain
+the record size to be the same for all actors.  Instead, we lay out the
+relevant information in a series of bytes, the number of which depends on the
+length of the actor’s name and the number of films they’ve appeared in.  Here’s
+what gets manually placed within each entry:</p>
+<ol>
+<li>The <strong>name</strong> of the actor is laid out character by character, as a normal
+null-terminated C-string.  If the length of the actor’s name is even, then
+the string is padded with an extra <code>'\0'</code> so that the total number of bytes
+dedicated to the name is always an even number.  The information that
+follows the name is most easily interpreted as a <code>short</code>, and the <code>myth</code>s
+often constrain addresses manipulated as <code>short *</code>s to be even.</li>
+<li>The number of movies in which the actor has appeared, expressed as a
+two-byte short.  (Some people have been in more than 255 movies, so a single
+byte isn’t always enough).  If the number of bytes dedicated to the actor’s
+name (always even) and the short (always 2) isn’t a multiple of four, then
+two additional <code>'\0'</code>'s appear after the two bytes storing the number of
+movies.  This padding is conditionally done so that the four-byte integers
+that follow sit at addresses that are multiples of four (again, because the
+64-bit <code>myth</code>'s might be configured to require this).</li>
+<li>An array of offsets into the <code>movieFile</code> image, where each offset identifies
+one of the actor’s films.</li>
+</ol>
+<p>Here’s what Cher’s record would look like:</p>
+<figure>
+    <img src="html_files/actor-record.png"> 
+</figure>
+
+<h3 id="the-movie-record">The Movie Record</h3>
+<p>The movie record is only slightly more complicated.  The information is compressed as follows:</p>
+<ol>
+<li>The <strong>title</strong> of the movie, terminated by a <code>'\0'</code>, so the character array
+behaves as a normal C-string incidentally wedged into a larger binary data
+figure.</li>
+<li>The <strong>year</strong> the film was released, expressed as a single byte.  This byte
+stores the year, minus 1900.  Since Hollywood is less than 256 years old, it
+was fine to just store the year as an offset from 1900.  If the total number
+of bytes used to encode the name and year of the movie is odd, then an extra
+<code>'\0'</code> sits in between the one-byte year and the data that follows.</li>
+<li>A two-byte <code>short</code> storing the number of actors appearing in the film,
+padded with two additional bytes of zeroes if needed.</li>
+<li>An array of four-byte integer offsets, where each integer offset identifies
+one of the actors accessible via <code>actorFile</code>.  The number of offsets here
+is, of course, equal to the <code>short</code> read during step 3.</li>
+</ol>
+<p>One major gotcha: Some movies share the same title even though they are
+different. (The Manchurian Candidate, for instance, was first released in 1962,
+and then remade in 2004.  They’re two different films with two different
+casts.)  If you look in the <code>imdb-utils.h</code> file, you’ll see that the <code>film</code>
+struct provides <code>operator&lt;</code> and <code>operator==</code> methods.  That means that two
+<code>film</code>s know how to compare themselves to each other using infix <code>==</code> and <code>&lt;</code>.
+You can just rely on the <code>&lt;</code> and <code>==</code> to compare two <code>film</code> records.  In fact,
+you <strong>have to</strong>, because the movies in the <code>movieData</code> binary image are sorted
+to respect <code>film::operator&lt;</code>.</p>
+<p>It’s best to work on the implementation of the <code>imdb</code> class in isolation, not
+worrying about the details of the search algorithm you’ll eventually need to
+write.  I’ve provided a test harness to exercise the <code>imdb</code> all by itself, and
+that code sits in <code>imdbtest.cc</code>.  The <code>make</code> system generates a test
+application called <code>imdbtest</code> which you can use to verify that your <strong>imdb</strong>
+implementation is solid.  I provide my own version in <code>./samples/imdbtest_soln</code>
+(<code>samples</code> is a symbolic link in your repo to a shared directory with solution
+executables) so you can run your version and my version side by side and make
+sure they match character for character.</p>
+<p><strong>Note:</strong> Your implementation will be—and in fact is intended to be—an
+interesting mix of C and C++. You’ll be relying on your mad C skills to crawl
+over the binary images, and you’ll be leveraging your C++ mastery to lift that
+data up into C++ objects.  As part of your implementation, you’ll need to
+binary search over the actor and movie offsets to find the actor or movie of
+interest.</p>
+<p>You’re required to use the STL
+<a href="http://en.cppreference.com/w/cpp/algorithm/lower_bound"><code>lower_bound</code></a>
+algorithm to perform these binary searches, and you’re also required to use C++
+lambdas (also known as anonymous functions with capture clauses) to provide
+nameless comparison functions that
+<a href="http://en.cppreference.com/w/cpp/algorithm/lower_bound"><code>lower_bound</code></a> can use
+to guide its search. See the Tips and Tidbits section below for more
+information.</p>
+<h2 id="task-ii-implementing-search">Task II: Implementing Search</h2>
+<p>You’re back in pure C++ mode.  At this point, I’m assuming your <code>imdb</code> class
+works flawlessly, and the fact that there’s some clever pointer gymnastics
+going on in the <code>imdb.cc</code> file is fully disguised by a delightfully simple
+<code>imdb</code> interface. Building on top of your <code>imdb</code> class, no pointer arithmetic
+is required!</p>
+<p>For this task, you should use the services of your <code>imdb</code> and my <code>path</code> class
+(discussed below) to implement a breadth-first search for the shortest possible
+path.  Leverage the STL containers as much as possible to get this done.  Here
+are the STL classes I used in my solution:</p>
+<ul>
+<li><a href="http://en.cppreference.com/w/cpp/container/vector"><code>vector</code></a>: there’s no
+escaping this one, because the <code>imdb</code> requires we pull <code>film</code>s and <code>actor</code>s
+out of the binary images as <code>vector</code>s.</li>
+<li><a href="https://en.cppreference.com/w/cpp/container/queue"><code>queue</code></a>: The <code>queue</code>
+provides <code>push</code> (enqueue), <code>front</code> (gets the first element), and <code>pop</code>
+(removes the first element) operations.</li>
+<li><a href="http://en.cppreference.com/w/cpp/container/set"><code>set</code></a>: I used two <code>set</code>s to
+keep track of previously used actors and films. If you’re implementing a
+breadth-first search and you encounter a movie or actor that you’ve seen
+before, there’s no reason to use it/them a second time. You shouldn’t need
+to use anything other than <code>set::insert</code> and <code>set::contains</code>.
+<strong>NOTE:</strong> <code>set::contains</code> is from C++20, and the Makefile is still using
+C++11. To upgrade to C++20, you can edit the Makefile at line 12 and change
+<code>c++0x</code> to <code>c++20</code>.</li>
+</ul>
+<p>You’re welcome to take any approach you want to, provided it generates some
+shortest path between the supplied actors.  We don’t require you generate the
+same exact path as my solution does, but we do expect the length of your
+shortest path to match mine.</p>
+<h2 id="tips-and-tidbits">Tips and Tidbits</h2>
+<p>Assignment 1 has been the same for the last several years, and I’ve seen a lot
+of submissions.  In prior quarters, I’ve let students struggle through the
+roadblocks they face as part of the C and C++ review process.  However, those
+struggles were mitigated by the ability to hang out with others for help.
+Since there’s no hanging out for a while, I figured I’d itemize what the pain
+points have been in the past and provide some hints to press through them.</p>
+<h3 id="understanding-lower_bound-and-lambdas">Understanding <code>lower_bound</code> and Lambdas</h3>
+<p>Most students have a difficult time with the idea of an anonymous function and how it should be used with <code>lower_bound</code>.  Fundamentally, an anonymous function is a function we don’t bother naming.  In the context of <code>imdb::getCredits</code>, the relevant <code>lower_bound</code> call should look like this:</p>
+<pre><code>`const int *countp = (const int *) actorFile;
+const int *begin = (const int *) actorFile + 1;
+const int *end = begin + *countp;
+const int *found = lower_bound(begin, end, player, [this](int offset, const string&amp; player) {
+    return compareActorAtOffset(offset, player);
+});`
+</code></pre><p><code>begin</code> and <code>end</code> are the addresses bracketing the array of integer offsets, <code>player</code>
+ is the name we’re searching for, and that intimidating fourth argument 
+is the anonymous comparison function.  The comparison function is used 
+by the implementation of <code>lower_bound</code> to compare offsets (or really, the strings reachable from those offsets) to the <code>player</code> key.</p>
+<p>Even if it looks strange, you’ll probably agree that the fourth 
+parameter resembles the parameter list and body of a traditional 
+function.  What’s different? The function doesn’t have a name (that’s 
+what makes it anonymous), and it makes use of a capture clause, which is
+ the <code>[this]</code> portion at the beginning.</p>
+<p>The assumption here is that <code>compareActorAtOffset</code> is a <code>const private</code> helper method of the <code>imdb</code>
+ class, and it would need to be implemented to crawl over the image of 
+actor data according to the assignment specification.  It needs to be a 
+method so that it has access to the private <code>actorFile</code> field needed to find the actor at the supplied offset.  Its implementation needs to return <code>true</code> if and only if the actor name at the provided <code>offset</code> is lexicographically less than the supplied <code>player</code>.  It’s that <code>true</code> or <code>false</code> that helps <code>lower_bound</code>
+ internally execute its binary search to either discover where the actor
+ string’s offset is or where its offset would need to be inserted if 
+everything were to remain sorted.</p>
+<p>Reasonable question:  Why not just pass in <code>compareActorAtOffset</code> itself as a fourth parameter, as with this:</p>
+<pre><code>const int *countp = (const int *) actorFile;
+const int *begin = (const int *) actorFile + 1;
+const int *end = begin + *countp;
+const int *found = lower_bound(begin, end, player, compareActorAtOffset); // won't compile
+</code></pre><p>Well, the fourth parameter needs to be a <strong>traditional function</strong>, and methods—blocks of code invoked on behalf of an object—aren’t traditional functions.</p>
+<p>Another reasonable question: What’s the <code>[this]</code> all about?</p>
+<p>That’s called a capture clause, and it’s a list of variables in the 
+surrounding scope that needs to be shared with the body of the anonymous
+ function for it to do its job properly.  In this case, we capture <code>this</code>, which is a keyword variable that always stores the address of the object being accessed.  If we omit <code>this</code> from the capture clause and just pass in an empty one, as with this:</p>
+<pre><code>const int *countp = (const int *) actorFile;
+const int *begin = (const int *) actorFile + 1;
+const int *end = begin + *countp;
+const int *found = lower_bound(begin, end, player, [](int offset, const string&amp; player) {
+    return compareActorAtOffset(offset, player); // won't compile! no access to this!
+});
+</code></pre><p>then the compiler wouldn’t know what object the call to <code>compareActorAtOffset</code> references.</p>
+<h3 id="interpreting-lower_bounds-return-value">Interpreting <code>lower_bound</code>'s return value</h3>
+<p>It’s common to assume <code>lower_bound</code> returns something <code>NULL</code>-like whenever the underlying binary search for the key—<code>getCredits</code>'s <code>player</code>
+ parameter, for example—fails.  In fact, the return value means one of 
+two slightly different things, depending on whether the key is present 
+or not.  Let’s limit our discussion to the use of lower_bound within <code>imdb::getCredits</code>.</p>
+<ul>
+<li>When the key—or rather, when <code>player</code>—is present, the 
+return value is an iterator linked to the matching element.  Because 
+we’re dealing with a sequence of integer offsets that lead to actor 
+names, the return value is the address of the offset linked to the 
+matching actor.</li>
+<li>When the key is not present, the return value is the address of the 
+insertion point where a new offset would need to be inserted on behalf 
+of the missing key if it were inserted.  Of course, we’re not actually 
+inserting missing names, but the <code>lower_bound</code> call doesn’t know that.  It’s implemented to handle a larger universe of use cases than IMDB.</li>
+</ul>
+<p>The union of bullet points one and two means you can’t simply look at the <code>lower_bound</code>
+ return value and know whether the actor is present.  You need to do a 
+little more work to see whether the return value leads to the matching 
+actor name.  If it does, you carry on and look for his or her credits.  
+If not, you bail early and return <code>false</code>, because nonexistent actors aren’t allowed to be in movies.</p>
+<h3 id="write-utility-functions">Write utility functions</h3>
+<p>You don’t need to be pedantic about it, but you should unify the crunchy
+pointer arithmetic needed to resuscitate an actor and a film from the data
+images to helper functions.  The (<code>char *</code>), (<code>short *</code>), and (<code>int *</code>)-casting
+gymnastics is by far the most error-prone form of coding we’ll require of you
+all quarter, so it’s best to consolidate as much of it to just one or two
+places, and to rely on those utilities to enhance the narrative of your
+<code>getCredits</code> and <code>getCast</code> methods.</p>
+<h3 id="making-search-fast">Making Search Fast</h3>
+<p>A lot of students are interested in making their breadth-first search for paths
+between two actors as fast as possible. When the search is slower than the
+sample executable by more than a factor of three or four, then it is most often
+caused by making a lot of unnecessary copies of offset arrays.  In the past
+I’ve seen students pull all integer offsets into a dedicated vector and then
+call lower_bound on the vector endpoints. Don’t do that. The linear copies are
+expensive and totally unnecessary. The offset arrays directly reachable from
+actorFile and movieFile are perfectly valid arrays.</p>
+<p>If you really want to investigate optimizations to make the search faster you
+can do one or both of the following (my solution actually does the first, but
+doesn’t do the second):</p>
+<ul>
+<li>Check to see which of the two actor endpoints has the smaller number of
+costars, and initiate the search from that actor.  It’s a lot easier to find
+the haystack around a needle than it is to find the needle in a haystack.
+Restated, it’s easier to find a path from “Liseli Mutti” to “Julia Roberts”
+than it is to find a path from “Julia Roberts” to “Liseli Mutti”.</li>
+<li>The naive (but perfectly acceptable) solution maintains a queue of partial
+paths emanating away from one of the two actors we’re connecting. That
+implementation, however, should never allow a movie or actor to extend a
+partial path if it contributes to a previously generated partial. Stated
+differently, each movie/actor pair—whether or not it ultimately contributes
+to the answer—has a <strong>unique predecessor</strong>.  Rather than maintaining a queue
+of partial paths, you can reduce the memory footprint of the search by
+maintaining a queue of movie/actor pairs, where each pair is the last pair of
+some partial path, provided you also build up a predecessor map along the
+way.  Once you find the target actor, you can quickly build up the path
+object by navigating the predecessor map back to the source. Then you can
+print!</li>
+</ul>
+<h3 id="additional-hints">Additional Hints</h3>
+<ul>
+<li>Our CS106B and CS106X classes rely on a collection of C++ libraries that
+aren’t generally available outside of Stanford. I want you to code in
+<strong>standard</strong> C++ instead of the Stanford dialect of it, so you’ll need to
+teach yourself some of the C++ that CS106B/X circumvented. In particular, the
+CS106 <code>Vector</code> and <code>Map</code> templates are officially verboten; you’ll instead
+need to teach yourself the standard <code>vector</code> and <code>map</code> classes that ship with
+all C++ compilers.  I’ve posted a <a href="https://web.stanford.edu/class/archive/cs/cs110/cs110.1202/static/lectures/errata-c-plus-plus-refresher.html#(1)">slide
+deck</a>
+from prior CS110 offerings that teach some of the C++ I speak of. And you
+should visit—even bookmark—the landing page of an <a href="http://en.cppreference.com/w/">online C++ documentation
+site</a> that I think is pretty superb.  In
+particular, pay attention to the documentation for
+<a href="http://en.cppreference.com/w/cpp/container/vector">vector</a>,
+<a href="http://en.cppreference.com/w/cpp/container/map">map</a>,
+<a href="http://en.cppreference.com/w/cpp/container/queue">queue</a>,
+<a href="http://en.cppreference.com/w/cpp/container/set">set</a>, and
+<a href="http://en.cppreference.com/w/cpp/algorithm/lower_bound">lower_bound</a>.</li>
+<li>Your implementation of the <code>imdb</code> class—in particular, its <code>getCast</code> and
+<code>getCredits</code> methods—needs to crawl over memory to resuscitate <code>film</code>s from
+the binary data images.  Strive to unify common code to helper functions and
+methods so that you never repeat the same crunchy line of pointer arithmetic
+more than once.  This is particularly important here, because you’re very
+likely to get the pointer arithmetic wrong the first few rounds, and it’s
+important coding errors be confined to one spot instead of being replicated
+verbatim across several locations.</li>
+<li>Try to minimize the number of deep copies you make of large data structures
+(e.g. <code>vector</code>s, <code>map</code>s, <code>set</code>s, etc.) by passing them by reference or by
+<code>const</code> reference.  In general, I’m happy to pass primitives like <code>int</code>s and
+<code>bool</code>s by value, but anything as large as a <code>string</code> I generally pass by
+reference unless I have an exquisite reason for making deep copies.</li>
+<li>In past quarters, some students have constructed working solutions without
+using (or even recognizing the existence of) the supplied <code>path</code> class.
+However, your life will be made much easier if you use it, since <code>path</code>s know
+how to print themselves out via a custom <code>operator&lt;&lt;</code>, and it just so happens
+that <code>path</code>s print themselves in a way that plays well with our autograder.</li>
+<li>Speaking of the autograder, you should rely on our <code>sanitycheck</code> tool –
+again, invoked via <code>./tools/sanitycheck</code> – to confirm that your solution
+matches my own for a small suite of test cases. The tests exposed via
+<code>sanitycheck</code> are a subset of the tests we’ll use when grading. If you pass
+<code>sanitycheck</code> on Assignment 1, then we promise your <em>functionality score</em>
+will be at least 75%. (Note: <em>functionality score</em> was inserted to be clear
+that there’s a code review component to the overall grade as well.  Your
+functionality score, however, counts five times as much as the code review
+score, and the code review score amounts to several bucket grades
+[exceptional, solid, minor-errors, major-errors, etc.] across several
+categories, and most bucket grades end up being solids and minor-errors.</li>
+<li>If you need a tutorial on how <code>valgrind</code> works, you can leverage the
+documentation written for CS107.  A full treatise on what <code>valgrind</code> is and
+what it can do for you can be found <a href="https://web.stanford.edu/class/cs107/resources/valgrind">right
+here</a>.  More generic
+documentation on how to test with <code>valgrind</code> can be found <a href="http://valgrind.org/docs/manual/quick-start.html">right
+here</a>.</li>
+<li>Cool fact: Mike Krieger, co-founder of Instagram, took CS107 from Jerry Cain
+about almost 20 years ago and did this assignment in a slightly different
+form.  Fast forward ten years and Jerry finds out that Mike and Kevin Systrom
+used the same binary data image compression techniques used here to compactly
+store large amounts of data for their v1.</li>
+</ul>
+
+</div>
+
+    
+
+
+</body></html>
