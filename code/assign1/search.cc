@@ -82,9 +82,6 @@ struct node *bfs(imdb& db, string& start, string& finish) {
 					/* cout << "  Adding " << v << " to queue" << endl; */
 					q.push(vnode);
 				}
-				else {
-					/* cout << "Already visited " << v << endl; */
-				}
 			}
 		}
 
@@ -117,8 +114,22 @@ int main(int argc, char *argv[]) {
 	string player1 = argv[1];
 	string player2 = argv[2];
 
+	vector<film> f;
+	vector<film> g;
+	if(!db.getCredits(player1, f) || !db.getCredits(player2, g)) {
+		cout << "No path found" << endl;
+		return 0;
+	}
 
-	node * result = bfs(db, player1, player2);
+	node * result;
+	if(f.size() < g.size()) {
+		result = bfs(db, player1, player2);
+	}
+	else {
+		result = bfs(db, player2, player1);
+	}
+
+
 	if(result == NULL) {
 		cout << "No path found" << endl;
 	}
